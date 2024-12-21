@@ -6,7 +6,7 @@ and includes the routes for ingredients and recipes.
 
 from fastapi import FastAPI
 from app.db.database import Base, engine
-from app.routes import ingredients, recipes
+from app.routes import ingredients, recipes,chatbot
 from app.utils.parse_recipes import insert_recipes_from_file
 
 app = FastAPI(
@@ -31,6 +31,7 @@ def load_initial_recipes():
 # Register our routers
 app.include_router(ingredients.router)
 app.include_router(recipes.router)
+app.include_router(chatbot.router)
 
 @app.get("/")
 def root():
