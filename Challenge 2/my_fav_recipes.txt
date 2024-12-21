@@ -16,3 +16,74 @@ Reviews: My family loved it!
 Cuisine: Dessert
 PrepTime: 45
 AdditionalTags: cake, chocolate
+
+---
+Title: My Recipe
+Ingredients: Eggs, Flour
+Instructions: Mix and bake.
+
+---
+Setatrecec Sts
+
+Seer
+psc}
+
+Beier eral
+Svar Ms ae
+Beier em acs
+
+Instructions:
+See St aco ve eee Se Re Co
+Pee cal tees U REM CUR Bc
+
+3. Pour the mixture into the pan and stir gently until cooked.
+
+Dee riety
+Cuisine Type: Breakfast
+
+Taste Profile: Savory and creamy
+
+---
+Title: Scrambled Eggs
+
+Ingredients:
+- 2 eggs
+
+- 1 tablespoon milk
+
+- Salt and pepper to taste
+
+- 1 teaspoon butter
+
+Instructions:
+1. Whisk eggs, milk, salt, and pepper in a bowl.
+2. Heat butter in a pan over medium heat.
+
+3. Pour the mixture into the pan and stir gently until cooked.
+
+Preparation Time: 5 minutes
+Cuisine Type: Breakfast
+
+Taste Profile: Savory and creamy
+
+---
+Title: Fried Rice
+Ingredients: Rice; Eggs; Mixed Vegetables; Soy Sauce
+Instructions:
+
+1) Cook the rice.
+
+2) In a pan, scramble the eggs.
+
+3) Add cooked rice and vegetables.
+
+4) Stir fry with soy sauce.
+
+Taste: savory
+Reviews: Delicious and easy
+
+Cuisine: Asian
+
+PrepTime: 20
+
+Additionaltags: budget-friendly, one-pan

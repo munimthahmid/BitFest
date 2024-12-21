@@ -12,7 +12,19 @@ import os
 from app.db.database import SessionLocal
 from app.db import models
 from app.utils.parse_recipes import parse_recipe_block, insert_parsed_recipes_to_db
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, File, UploadFile
+from sqlalchemy.orm import Session
+import os
+import uuid  # to generate unique filenames
+from app.utils.parse_recipes import insert_parsed_recipes_to_db
+from app.utils.parse_ocr import extract_text_from_image
+from app.utils.parse_recipes import parse_recipe_block, insert_parsed_recipes_to_db
 
+
+from fastapi import File, UploadFile
+import uuid  # to generate unique filenames
+from app.utils.parse_ocr import extract_text_from_image
+from app.utils.parse_recipes import parse_recipe_block, insert_parsed_recipes_to_db
 router = APIRouter(
     prefix="/recipes",
     tags=["Recipes"]
@@ -24,6 +36,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
 
 @router.post("/add")
 def add_recipe(
@@ -205,3 +219,72 @@ def delete_recipe(recipe_id: int, db: Session = Depends(get_db)):
     db.delete(recipe)
     db.commit()
     return {"message": f"Recipe {recipe_id} deleted"}
+
+
+
+@router.post("/upload_image")
+def add_recipe_from_image(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Accepts an image file, runs OCR to extract text,
+    parses the text as a recipe, and stores it in the DB.
+    """
+
+    # 1. Save the image to a local 'uploads/' folder
+    UPLOAD_DIR = "uploads"
+    if not os.path.exists(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
+
+    # Generate a unique filename to prevent collisions
+    _, ext = os.path.splitext(file.filename)
+    unique_filename = f"{uuid.uuid4()}{ext}"
+
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+
+    with open(file_path, "wb") as f:
+        contents = file.file.read()
+        f.write(contents)
+
+    # 2. Extract text using OCR
+    extracted_text = extract_text_from_image(file_path)
+    print("Printing the extracted text:")
+    print(extracted_text)
+
+    if not extracted_text.strip():
+        return {"message": "No text found in the image. Ensure the image is clear and has readable text."}
+
+    # 3. Optionally append to my_fav_recipes.txt
+    # We can do the same approach as upload_text, adding the '---' separator
+    fav_recipes_path = "my_fav_recipes.txt"
+    with open(fav_recipes_path, "a", encoding="utf-8") as txt_file:
+        txt_file.write("\n---\n")
+        txt_file.write(extracted_text.strip())
+        txt_file.write("\n")
+
+    # 4. Parse the extracted text (like a single recipe block)
+    parsed_recipe_dict = parse_recipe_block(extracted_text)
+    print(parsed_recipe_dict)
+
+    # 5. Insert it into the DB
+    insert_parsed_recipes_to_db([parsed_recipe_dict], db)
+
+    # 6. (Optional) If you want to store the original image path & extracted text in recipe_images table:
+    #    We'll do this only if you created the `RecipeImage` model.
+
+    # from app.db.models import RecipeImage
+    # new_image_record = RecipeImage(
+    #    image_path=file_path,
+    #    extracted_text=extracted_text,
+    #    # recipe_id=<the new recipe's ID> if you want to link it
+    # )
+    # db.add(new_image_record)
+    # db.commit()
+    # db.refresh(new_image_record)
+
+    return {
+        "message": "Recipe created from image via OCR",
+        "image_stored_as": unique_filename,
+        "extracted_text_snippet": extracted_text[:100]  # show first 100 chars
+    }
