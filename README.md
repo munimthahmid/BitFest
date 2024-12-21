@@ -1,167 +1,150 @@
+README for Mofa’s Kitchen Buddy
 
+This document describes the entire setup, configuration, usage, and examples for Mofa’s Kitchen Buddy—a backend system that manages ingredients, retrieves recipes (from text files or images via OCR), and integrates with a chatbot (powered by Google’s Gemini Flash) to suggest recipes based on what’s available at home.
 
-```md
-# Mofa’s Kitchen Buddy
+---------------------------------------------------------------------------
+TABLE OF CONTENTS
 
-A **backend system** that helps Mofa manage his ingredients, **retrieve recipes** (from text or images via OCR), and **interact with a chatbot** (powered by Google’s Gemini Flash) to **suggest recipes** based on **what's available at home**.
+1) Overview
+2) Features
+3) Installation
+4) Setup & Configuration
+5) Running the Server
+6) Usage
+   6.1) Ingredient Management
+   6.2) Recipe Management (Text-Based)
+   6.3) OCR Integration (Optional)
+   6.4) Chatbot Integration (Gemini Flash)
+7) Examples
+   7.1) Add a Sweet Recipe
+   7.2) Add the Required Ingredients
+   7.3) Chat: “I want something sweet”
+8) Extending & Customizing
+9) License
 
----
+---------------------------------------------------------------------------
 
-## Table of Contents
+1) OVERVIEW
 
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Setup \& Configuration](#setup--configuration)
-- [Running the Server](#running-the-server)
-- [Usage](#usage)
-  - [1. Ingredient Management](#1-ingredient-management)
-  - [2. Recipe Management (Text-Based)](#2-recipe-management-text-based)
-  - [3. OCR Integration (Optional)](#3-ocr-integration-optional)
-  - [4. Chatbot Integration (Gemini Flash)](#4-chatbot-integration-gemini-flash)
-- [Examples](#examples)
-  - [A) Add a Sweet Recipe](#a-add-a-sweet-recipe)
-  - [B) Add the Required-Ingredients](#b-add-the-required-ingredients)
-  - [C) Chat: "I want something sweet"](#c-chat-i-want-something-sweet)
-- [Extending \& Customizing](#extending--customizing)
-- [License](#license)
+Mofa’s Kitchen Buddy is designed to handle:
+- Ingredients: Add, update, delete items in Mofa’s kitchen.
+- Recipes: Parse from a large text file (my_fav_recipes.txt), upload from raw text, or optionally from images (OCR).
+- Chatbot: A Large Language Model integration (using Gemini Flash from Google) that:
+  • Understands user preferences (e.g., “I want something sweet”).
+  • Checks the available ingredients in the kitchen.
+  • Recommends only those recipes that can be prepared with those ingredients.
 
----
+---------------------------------------------------------------------------
 
-## Overview
+2) FEATURES
 
-**Mofa’s Kitchen Buddy** is designed to handle:
+- Database Schema:
+  • Ingredients table (name, quantity, unit).
+  • Recipes table (title, ingredients_required, taste_profile, reviews, cuisine_type, preparation_time, additional_tags).
 
-1. **Ingredients**: Add/update/delete items in Mofa’s kitchen.  
-2. **Recipes**: Parse from a large text file (`my_fav_recipes.txt`), upload from raw text, or optionally from **images** (OCR).  
-3. **Chatbot**: A Large Language Model integration (using **Gemini Flash** from Google) that:
-   - Understands user preferences (e.g., “I want something sweet”).
-   - Checks the **available ingredients** in the kitchen.
-   - Recommends only those recipes that can be prepared with those ingredients.
+- Ingredient Management API:
+  • Add new ingredients (POST /ingredients/add)
+  • Update existing ingredients (PUT /ingredients/update/{id})
+  • Delete ingredients (DELETE /ingredients/{id})
+  • List all ingredients (GET /ingredients)
 
----
+- Recipe Retrieval:
+  • Load/parse from my_fav_recipes.txt
+  • Add recipes from raw text (appending to the file)
+  • Add recipes from images (OCR)
+  • Search/filter with optional parameters (taste_profile, cuisine_type, max_prep_time, search)
 
-## Features
+- Chatbot Integration:
+  • Uses Gemini Flash (google-generativeai library)
+  • Recommends recipes that fit user preferences AND match the available ingredients.
 
-- **Database Schema**  
-  - `Ingredients` table (name, quantity, unit).  
-  - `Recipes` table (title, ingredients_required, taste_profile, etc.).
+---------------------------------------------------------------------------
 
-- **Ingredient Management API**  
-  - Add new ingredients (`POST /ingredients/add`).  
-  - Update existing ingredients (`PUT /ingredients/update/{id}`).  
-  - Delete ingredients (`DELETE /ingredients/{id}`).  
-  - List all ingredients (`GET /ingredients`).
+3) INSTALLATION
 
-- **Recipe Retrieval**  
-  - Load/parse from `my_fav_recipes.txt`.  
-  - Add recipes from **raw text** (appending to the file).  
-  - Add recipes from **image** (OCR).  
-  - Search/filter with optional parameters (`taste_profile`, `cuisine_type`, `max_prep_time`, `search`).
-
-- **Chatbot Integration**  
-  - Uses **Gemini Flash** via the `google-generativeai` library.  
-  - Recommends recipes that **fit user preferences** **and** **match** the **available ingredients**.
-
----
-
-## Installation
-
-1. **Clone or download** this repository.  
-2. **Install dependencies** by running:
-   ```bash
+1. Clone or download this repository.
+2. Install dependencies by running:
    pip install -r requirements.txt
-   ```
-3. *(Optional)* If using OCR, ensure **Tesseract** is installed on your system. For instance, on Ubuntu:
-   ```bash
+3. (Optional) If using OCR, ensure Tesseract is installed on your system. For instance, on Ubuntu:
    sudo apt-get update
    sudo apt-get install tesseract-ocr
-   ```
 
----
+---------------------------------------------------------------------------
 
-## Setup & Configuration
+4) SETUP & CONFIGURATION
 
-1. **Database**  
-   - By default, the system uses **SQLite** (`test.db`) in the project root.  
-   - If you wish to use another DB (e.g., PostgreSQL), modify `SQLALCHEMY_DATABASE_URL` in `app/db/database.py`.
+1. Database
+   By default, the system uses SQLite (test.db) in the project root.
+   If you wish to use another DB (e.g., PostgreSQL), modify SQLALCHEMY_DATABASE_URL in app/db/database.py.
 
-2. **Gemini Flash API Key**  
-   - Obtain your **Gemini API Key** from Google.  
-   - Set it as an environment variable:
-     ```bash
-     export GEMINI_API_KEY="YOUR_GEMINI_KEY"
-     ```
+2. Gemini Flash API Key
+   Obtain your Gemini API Key from Google.
+   Set it as an environment variable. For example:
+   export GEMINI_API_KEY="YOUR_GEMINI_KEY"
 
-3. **`my_fav_recipes.txt`** (Optional)  
-   - If you have an existing file with recipes, place it at the project root.  
-   - On startup, the system parses this file (delimited by `---`) and loads the recipes into `test.db`.
+3. my_fav_recipes.txt (Optional)
+   If you have an existing file with recipes, place it at the project root.
+   On startup, the system parses this file (delimited by '---') and loads the recipes into test.db.
 
----
+---------------------------------------------------------------------------
 
-## Running the Server
+5) RUNNING THE SERVER
 
-Launch the FastAPI server with **uvicorn**:
+Use uvicorn to launch the FastAPI server:
 
-```bash
 uvicorn app.main:app --reload
-```
 
-The API is accessible at:  
-[http://127.0.0.1:8000](http://127.0.0.1:8000)
+After it starts, the API is accessible at:
+http://127.0.0.1:8000
 
-**API Documentation**:
-- **Swagger UI**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)  
-- **ReDoc**: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
+API Documentation:
+• Swagger UI: http://127.0.0.1:8000/docs
+• ReDoc: http://127.0.0.1:8000/redoc
 
----
+---------------------------------------------------------------------------
 
-## Usage
+6) USAGE
 
-### 1. Ingredient Management
+6.1) Ingredient Management
 
-**Endpoints**:
-
-- **POST** `/ingredients/add`  
+Endpoints:
+• POST /ingredients/add
   Example JSON body:
-  ```json
   {
     "ingredient_name": "Flour",
     "quantity": 2,
     "unit": "cups"
   }
-  ```
-- **PUT** `/ingredients/update/{ingredient_id}`  
+
+• PUT /ingredients/update/{ingredient_id}
   Example JSON body:
-  ```json
   {
     "quantity": 3,
     "unit": "cups"
   }
-  ```
-- **DELETE** `/ingredients/{ingredient_id}`  
+
+• DELETE /ingredients/{ingredient_id}
   Deletes an ingredient by ID.
 
-- **GET** `/ingredients`  
+• GET /ingredients
   Lists all ingredients.
 
-### 2. Recipe Management (Text-Based)
+6.2) Recipe Management (Text-Based)
 
-- **Load from `my_fav_recipes.txt`**  
-  On startup, this file is parsed (each recipe separated by `---`) and inserted into the DB.
+• Load from my_fav_recipes.txt
+  On startup, this file is parsed (each recipe separated by '---') and inserted into the DB.
 
-- **Add from Raw Text**  
-  **POST** `/recipes/upload_text`  
-  ```json
+• Add from Raw Text
+  POST /recipes/upload_text
+  Example JSON:
   {
     "raw_text": "Title: Pancakes\nIngredients: Flour; Milk; Eggs\nInstructions: Mix and fry.\nTaste: sweet\nReviews: 5 stars\nCuisine: Breakfast\nPrepTime: 15\nAdditionalTags: fluffy"
   }
-  ```
-  This text is appended to `my_fav_recipes.txt`, then parsed and inserted into the DB.
+  This text is appended to my_fav_recipes.txt, then parsed and inserted into the DB.
 
-- **Add via Structured JSON**  
-  **POST** `/recipes/add`  
-  ```json
+• Add via Structured JSON
+  POST /recipes/add
+  Example JSON:
   {
     "recipe_title": "Waffles",
     "ingredients_required": "Flour; Milk; Eggs; Sugar",
@@ -172,171 +155,124 @@ The API is accessible at:
     "preparation_time": 20,
     "additional_tags": "dessert"
   }
-  ```
 
-- **Retrieve/Search Recipes**  
-  **GET** `/recipes`  
-  Supports query parameters:
-  - `taste_profile=...`
-  - `cuisine_type=...`
-  - `max_prep_time=...`
-  - `search=...` (keyword search on title, instructions, and ingredients)
+• Retrieve/Search Recipes
+  GET /recipes
+  Supports query parameters: taste_profile, cuisine_type, max_prep_time, search
 
-- **GET** `/recipes/{recipe_id}`  
+• GET /recipes/{recipe_id}
   Retrieve one recipe by ID.
 
-- **PUT** `/recipes/update/{id}`  
+• PUT /recipes/update/{id}
   Update any fields of a recipe.
 
-- **DELETE** `/recipes/{id}`  
+• DELETE /recipes/{id}
   Remove a recipe.
 
-### 3. OCR Integration (Optional)
+6.3) OCR Integration (Optional)
 
-- **File**: `app/utils/parse_ocr.py` uses **pytesseract** + **Pillow**.  
-- **Endpoint**: **POST** `/recipes/upload_image`  
-  Accepts an image (e.g., `.png`, `.jpg`) via **multipart form**:
-  ```bash
-  curl -X POST "http://127.0.0.1:8000/recipes/upload_image" \
-       -F "file=@/path/to/recipe_screenshot.png"
-  ```
-  **Tesseract** extracts text → appended to `my_fav_recipes.txt` → parsed → inserted into DB.
+• If you plan to accept images, you must have parse_ocr.py (pytesseract + Pillow).
+• Endpoint: POST /recipes/upload_image
+  Accepts an image (e.g., .png, .jpg) via multipart form:
+  curl -X POST "http://127.0.0.1:8000/recipes/upload_image" -F "file=@/path/to/recipe_screenshot.png"
+  Tesseract extracts text -> appended to my_fav_recipes.txt -> parsed -> inserted into DB.
 
-### 4. Chatbot Integration (Gemini Flash)
+6.4) Chatbot Integration (Gemini Flash)
 
-- **Endpoint**: **POST** `/chat`
+• Endpoint: POST /chat
 
-**Flow**:
-1. Parse the user’s message (e.g., “I want something sweet”).  
-2. Filter recipes that match (e.g., `taste_profile=sweet`).  
-3. Cross-check them with the **user’s available ingredients** from the `ingredients` table.  
-4. Provide only feasible recipes to **Gemini Flash** as context.  
-5. Return the LLM’s generated text to the user.
+Flow:
+1) Parse the user’s message (for instance: "I want something sweet").
+2) Filter recipes that match (taste_profile = sweet).
+3) Cross-check them with the user’s available ingredients (ingredients table).
+4) Provide only feasible recipes to Gemini Flash as context.
+5) Return the LLM-generated text to the user.
 
-**Example request**:
-```bash
-curl -X POST "http://127.0.0.1:8000/chat" \
-     -H "Content-Type: application/json" \
-     -d '{"user_message": "I want something sweet"}'
-```
+Example request:
+curl -X POST "http://127.0.0.1:8000/chat" -H "Content-Type: application/json" -d '{"user_message": "I want something sweet"}'
 
-**Sample response**:
-```json
+Sample response:
 {
   "reply": "Here are some sweet recipes you can try..."
 }
-```
 (Exact text depends on Gemini’s generative output.)
 
----
+---------------------------------------------------------------------------
 
-## Examples
+7) EXAMPLES
 
-### A) Add a Sweet Recipe
+7.1) Add a Sweet Recipe
 
-```bash
 curl -X POST http://127.0.0.1:8000/recipes/add \
-     -H "Content-Type: application/json" \
-     -d '{
-       "recipe_title": "Chocolate Cake",
-       "ingredients_required": "Flour; Sugar; Eggs; Cocoa",
-       "instructions": "Mix ingredients, bake at 350F for 30 mins.",
-       "taste_profile": "sweet",
-       "reviews": "Family favorite",
-       "cuisine_type": "Dessert",
-       "preparation_time": 45,
-       "additional_tags": "cake, chocolate"
-     }'
-```
-**Result**:
-```json
+-H "Content-Type: application/json" \
+-d '{
+  "recipe_title": "Chocolate Cake",
+  "ingredients_required": "Flour; Sugar; Eggs; Cocoa",
+  "instructions": "Mix ingredients, bake at 350F for 30 mins.",
+  "taste_profile": "sweet",
+  "reviews": "Family favorite",
+  "cuisine_type": "Dessert",
+  "preparation_time": 45,
+  "additional_tags": "cake, chocolate"
+}'
+
+Response:
 {"message": "Recipe added", "recipe_id": 1}
-```
 
-### B) Add the Required-Ingredients
+7.2) Add the Required Ingredients
 
-Add each ingredient with **POST** `/ingredients/add`:
+Add each ingredient with POST /ingredients/add
 
-```bash
-# Add Flour
+Example:
 curl -X POST http://127.0.0.1:8000/ingredients/add \
-     -H "Content-Type: application/json" \
-     -d '{
-       "ingredient_name": "Flour",
-       "quantity": 2,
-       "unit": "cups"
-     }'
+-H "Content-Type: application/json" \
+-d '{
+  "ingredient_name": "Flour",
+  "quantity": 2,
+  "unit": "cups"
+}'
 
-# Add Sugar
-curl -X POST http://127.0.0.1:8000/ingredients/add \
-     -H "Content-Type: application/json" \
-     -d '{
-       "ingredient_name": "Sugar",
-       "quantity": 1,
-       "unit": "cup"
-     }'
+Repeat similarly for "Sugar", "Eggs", "Cocoa," etc.
 
-# Add Eggs
-curl -X POST http://127.0.0.1:8000/ingredients/add \
-     -H "Content-Type: application/json" \
-     -d '{
-       "ingredient_name": "Eggs",
-       "quantity": 2
-     }'
+7.3) Chat: “I want something sweet”
 
-# Add Cocoa
-curl -X POST http://127.0.0.1:8000/ingredients/add \
-     -H "Content-Type: application/json" \
-     -d '{
-       "ingredient_name": "Cocoa",
-       "quantity": 1,
-       "unit": "tablespoon"
-     }'
-```
+Once you have:
+• A sweet recipe: Chocolate Cake
+• The required ingredients: Flour, Sugar, Eggs, Cocoa
 
-### C) Chat: "I want something sweet"
-
-Now you have:
-- A **sweet** recipe: **Chocolate Cake**.
-- All required ingredients: Flour, Sugar, Eggs, Cocoa.
-
-```bash
 curl -X POST http://127.0.0.1:8000/chat \
-     -H "Content-Type: application/json" \
-     -d '{
-       "user_message": "I want something sweet"
-     }'
-```
+-H "Content-Type: application/json" \
+-d '{
+  "user_message": "I want something sweet"
+}'
 
-**Response** (example):
-```json
+Possible Response:
 {
   "reply": "You can make a Chocolate Cake! Here are the steps..."
 }
-```
-The exact text depends on Gemini’s generative output, but it should reference **Chocolate Cake** as feasible given your available ingredients.
 
----
+Exact text depends on Gemini’s generative output, but it should confirm that “Chocolate Cake” is feasible.
 
-## Extending & Customizing
+---------------------------------------------------------------------------
 
-- **Chat History**  
-  - Store previous user and assistant messages for multi-turn conversations.
+8) EXTENDING & CUSTOMIZING
 
-- **Better Ingredient Matching**  
-  - Parse amounts/units rather than just name matching (currently we do a simple name check).
+• Chat History
+  If you want multi-turn conversations, store user and assistant messages in a DB or session.
 
-- **Advanced NLP**  
-  - Use a library to parse user queries for time constraints, cuisine, dietary restrictions, etc.
+• Better Ingredient Matching
+  Instead of a simple name check, parse amounts and units to confirm adequate supply.
 
-- **Advanced Search**  
-  - Consider full-text search or vector embeddings for more sophisticated recipe retrieval.
+• Advanced NLP
+  Use a library to parse user queries for time constraints, specific cuisines, or dietary restrictions.
 
----
+• Advanced Search
+  Consider full-text search or vector embeddings for more sophisticated recipe retrieval.
 
-## License
+---------------------------------------------------------------------------
 
-This project is provided under your preferred license terms. (Insert license text here.)
+9) LICENSE
 
-**Enjoy cooking with Mofa’s Kitchen Buddy!**
-```
+This project is provided under your preferred license terms. Insert license text here.
+
+Enjoy cooking with Mofa’s Kitchen Buddy!
