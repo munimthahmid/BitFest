@@ -1,3 +1,9 @@
 fastapi[standard]
 uvicorn
 sqlalchemy
+pydantic==1.10.9
+alembic==1.11.1
+
+# For OCR
+pytesseract==0.3.10
+Pillow==9.5.0

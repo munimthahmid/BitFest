@@ -1,23 +1,37 @@
+"""
+main.py
+FastAPI entry point: creates the app, initializes DB, loads existing recipes (if any),
+and includes the routes for ingredients and recipes.
+"""
+
 from fastapi import FastAPI
-from app.routes.hello import router as hello_router
 from app.db.database import Base, engine
+from app.routes import ingredients, recipes
+from app.utils.parse_recipes import insert_recipes_from_file
 
-def create_app() -> FastAPI:
-    app = FastAPI(
-        title="FastAPI App with DB",
-        version="1.0.0"
-    )
+app = FastAPI(
+    title="Mofa’s Kitchen Buddy - Text-based Recipe Retrieval",
+    description="APIs for managing ingredients and text-based recipes.",
+    version="1.0.0"
+)
 
-    # Include the hello router
-    app.include_router(hello_router)
+# Create DB tables if they don't already exist
+Base.metadata.create_all(bind=engine)
 
-    # Initialize database tables
-    Base.metadata.create_all(bind=engine)
+# On startup, parse the existing my_fav_recipes.txt (if present) and load them into DB
+@app.on_event("startup")
+def load_initial_recipes():
+    filepath = "my_fav_recipes.txt"
+    try:
+        insert_recipes_from_file(filepath)
+        print(f"Startup: Loaded recipes from {filepath}")
+    except FileNotFoundError:
+        print(f"No {filepath} file found, skipping initial recipe loading.")
 
-    return app
+# Register our routers
+app.include_router(ingredients.router)
+app.include_router(recipes.router)
 
-app = create_app()
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+@app.get("/")
+def root():
+    return {"message": "Welcome to Mofa's Kitchen Buddy (Text-based)! Use /docs for API documentation."}

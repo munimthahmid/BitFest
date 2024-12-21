@@ -1,0 +1,18 @@
+Title: Simple Pasta
+Ingredients: Pasta; Tomato Sauce; Olive Oil
+Instructions: Boil pasta. Add sauce. Drizzle with olive oil.
+Taste: savory
+Reviews: Super easy weeknight meal
+Cuisine: Italian
+PrepTime: 15
+AdditionalTags: quick, easy
+
+---
+Title: Chocolate Cake
+Ingredients: Flour; Sugar; Cocoa; Eggs
+Instructions: Mix ingredients. Bake at 350F for 30 minutes.
+Taste: sweet
+Reviews: My family loved it!
+Cuisine: Dessert
+PrepTime: 45
+AdditionalTags: cake, chocolate
